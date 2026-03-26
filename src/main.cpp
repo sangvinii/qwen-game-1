@@ -3,8 +3,10 @@
 #include <chrono>
 #include <csignal>
 #include "simulation/Simulation.h"
+#include "graphics/Graphics.h"
 
 Simulation* sim = nullptr;
+Graphics* gfx = nullptr;
 bool running = true;
 
 void signalHandler(int signum) {
@@ -26,27 +28,38 @@ int main() {
     // Инициализация мира
     sim->init(15, 30);  // 15 существ, 30 растений
     
-    std::cout << "World created: " << sim->world->width << "x" << sim->world->height << std::endl;
+    // Создание графического окна
+    gfx = new Graphics(sim->world->getWidth(), sim->world->getHeight(), 25);
+    
+    std::cout << "World created: " << sim->world->getWidth() << "x" << sim->world->getHeight() << std::endl;
     std::cout << "Initial entities: 15" << std::endl;
     std::cout << "Initial plants: 30" << std::endl;
     std::cout << std::endl;
-    std::cout << "Legend:" << std::endl;
-    std::cout << "  h = Herbivore (травоядное)" << std::endl;
-    std::cout << "  C = Carnivore (хищник)" << std::endl;
-    std::cout << "  o = Omnivore (всеядное)" << std::endl;
-    std::cout << "  * = Plant (растение)" << std::endl;
-    std::cout << "  . = Empty ground" << std::endl;
+    std::cout << "Graphical mode started!" << std::endl;
+    std::cout << "Use keyboard controls in the window:" << std::endl;
+    std::cout << "  W - Winter" << std::endl;
+    std::cout << "  M - Meteor" << std::endl;
+    std::cout << "  P - Add Plants" << std::endl;
+    std::cout << "  E - Add Herbivores" << std::endl;
+    std::cout << "  R - Add Predators" << std::endl;
+    std::cout << "  ESC - Quit" << std::endl;
     std::cout << std::endl;
-    std::cout << "Press Ctrl+C to stop and save statistics" << std::endl;
     
-    int ticksToRun = 100;  // Запустить на 100 тиков для демонстрации
+    int ticksToRun = 1000;  // Запустить на 1000 тиков
     bool autoMode = true;  // Автоматический режим
     
     if (autoMode) {
-        // Автоматическая симуляция
-        while (running && sim->tick < ticksToRun) {
+        // Автоматическая симуляция с графикой
+        while (running && gfx->isOpen() && sim->tick < ticksToRun) {
+            gfx->pollEvents();
+            
             sim->step();
-            sim->render();
+            
+            // Получение статистики
+            sim->updateStatistics();
+            
+            // Отрисовка
+            gfx->render(*sim->world, sim->world->entities, sim->world->plants, sim->stats, sim->isWinter);
             
             // Демонстрация катастроф
             if (sim->tick == 30) {
@@ -65,30 +78,7 @@ int main() {
                 sim->addResources(10);
             }
             
-            std::this_thread::sleep_for(std::chrono::milliseconds(200));
-        }
-    } else {
-        // Интерактивный режим (пошагово)
-        char input;
-        while (running) {
-            std::cout << "\nPress Enter for next step, or type command:" << std::endl;
-            std::cout << "  w - trigger winter" << std::endl;
-            std::cout << "  m - trigger meteor" << std::endl;
-            std::cout << "  a - add entities" << std::endl;
-            std::cout << "  r - add resources" << std::endl;
-            std::cout << "  q - quit" << std::endl;
-            std::cout << "> ";
-            
-            std::cin >> input;
-            
-            if (input == 'q') break;
-            else if (input == 'w') sim->triggerWinter(15);
-            else if (input == 'm') sim->triggerMeteor();
-            else if (input == 'a') sim->addEntities(5);
-            else if (input == 'r') sim->addResources(10);
-            
-            sim->step();
-            sim->render();
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
     }
     
@@ -102,11 +92,11 @@ int main() {
     std::cout << "Final population: " << sim->stats.totalEntities << std::endl;
     std::cout << "  Herbivores: " << sim->stats.herbivores << std::endl;
     std::cout << "  Carnivores: " << sim->stats.carnivores << std::endl;
-    std::cout << "  Omnivores: " << sim->stats.omnivores << std::endl;
     std::cout << "Average Speed: " << sim->stats.avgSpeed << std::endl;
     std::cout << "Average Aggression: " << sim->stats.avgAggression << std::endl;
     std::cout << "Average Metabolism: " << sim->stats.avgMetabolism << std::endl;
     
+    delete gfx;
     delete sim;
     
     return 0;

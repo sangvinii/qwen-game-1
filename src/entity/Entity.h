@@ -80,6 +80,14 @@ public:
         return new Entity(newX, newY, dna);
     }
     
+    bool isPredator() const {
+        return type == EntityType::CARNIVORE || type == EntityType::OMNIVORE;
+    }
+    
+    int getMaxHealth() const {
+        return 100;
+    }
+    
     char getSymbol() const {
         if (!alive) return ' ';
         switch (type) {
