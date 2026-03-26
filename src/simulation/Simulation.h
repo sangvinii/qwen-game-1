@@ -7,28 +7,41 @@
 #include <fstream>
 #include <map>
 
-struct Statistics {
+struct SimulationStats {
+    int tick;
+    int entityCount;
+    int herbivoreCount;
+    int predatorCount;
+    int plantCount;
+    double avgSpeed;
+    double avgAggression;
+    double avgMetabolism;
+    int totalBirths;
+    int totalDeaths;
+    
+    // Для обратной совместимости с main.cpp и Graphics.h
     int totalEntities;
     int herbivores;
     int carnivores;
     int omnivores;
     int plants;
-    double avgSpeed;
-    double avgAggression;
-    double avgMetabolism;
     int generation;
     
-    Statistics() : totalEntities(0), herbivores(0), carnivores(0), 
-                   omnivores(0), plants(0), avgSpeed(0), avgAggression(0),
-                   avgMetabolism(0), generation(0) {}
+    SimulationStats() : tick(0), entityCount(0), herbivoreCount(0), 
+                   predatorCount(0), plantCount(0), avgSpeed(0), avgAggression(0),
+                   avgMetabolism(0), totalBirths(0), totalDeaths(0),
+                   totalEntities(0), herbivores(0), carnivores(0), 
+                   omnivores(0), plants(0), generation(0) {}
 };
 
 class Simulation {
 public:
     World* world;
+    std::vector<Entity*> entities;
+    std::vector<Plant*> plants;
     int tick;
-    Statistics stats;
-    std::vector<std::pair<int, Statistics>> history;
+    SimulationStats stats;
+    std::vector<std::pair<int, SimulationStats>> history;
     
     // Катастрофы
     bool isWinter;

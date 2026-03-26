@@ -24,6 +24,9 @@ public:
         for (auto p : plants) delete p;
     }
     
+    int getWidth() const { return width; }
+    int getHeight() const { return height; }
+    
     bool isValid(int x, int y) const {
         return x >= 0 && x < width && y >= 0 && y < height;
     }
